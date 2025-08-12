@@ -1,25 +1,34 @@
-# KNOMI1
-Online manual & customize UI tutorials：[here](https://bigtreetech.github.io/docs/KNOMI.html#)
+# What is this?
+BTT's Knomi 2 supports adding a OV2640 camera.
 
-# KNOMI2
-Online manual ：[here](https://bigtreetech.github.io/docs/KNOMI2.html#)
+[OmeeeChan](https://github.com/OmeeeChan/Knomi-V2-camera-function) took the effort to implement this camera into knomi's code rudimentally.
 
-# Klipper config
+I wanted to make this a "round thing". My fork integrates the camera smoothly into the WebUI including instructions to use it with Mainsail and vieweing status codes for error handling.
 
-[KNOMI.cfg](./KNOMI.cfg) is the klipper config of the [latest version firmware](https://github.com/bigtreetech/KNOMI/tree/firmware)
+# Where can I find the code?
 
+Check out the firmware-fsedarkalex branch, open it with PlatformIO and flash it.
+I might provide a precompiled firmware at some point through Releases (If I find out how that is working).
 
-# Firmware source code
-[Here](https://github.com/bigtreetech/KNOMI/tree/firmware) is the firmware source code for both KNOMI1 and KNOMI2.
+# Will this firmware run on Knomi (v1)?
 
-# Firmware update
-### OTA
-* Download the pre compiled firmware from GitHub([KNOMI1](./KNOMI1/Firmware/knomi1_firmware.bin) and [KNOMI2](./KNOMI2/Firmware/knomi2_firmware.bin)) or build your own firmware
-* Enter KNOMI's IP or hostname (default is `knomi.local`) in the browser of a device with the same LAN as knomi, and then click `Update FW`<br/>
-<img src=Images/ota_1.png width="400" /><br/>
-* Select the firmware file just downloaded to start updating. After the update is complete, KNOMI will automatically restart and run the new firmware.<br/>
-<img src=Images/ota_2.png width="400" /><br/>
+Maybe yes, maybe no. I can't test it. The Knomi v1 has no Camera interface, so it would not make sense.
+I am developing specifically for Knomi v2.
 
-### Using `Flash Download Tools` from Espressif
-This step is used when KNOMI1 does not have OTA feature, or KNOMI cannot start and run OTA feature normally
-* Refer to the steps [here](https://bigtreetech.github.io/docs/KNOMI.html#update-firmware), but use firmware files from this repository.([KNOMI1](./KNOMI1/Firmware/) and [KNOMI2](./KNOMI2/Firmware/))
+# Where is all the GIfs?
+
+Here: https://github.com/bigtreetech/KNOMI/tree/master
+
+# Is this up to date?
+
+Maybe :)
+
+I will update my fork as I make changes to knomi 2 code.
+
+# I want feature XY or imprevement Z...
+
+You can put it into issues but I am not aiming to create an alternative firmware. I only want to adjust knomi to my needs, keeping things universal.
+
+# I am a representative of BTT. May we integrate your code changes back?
+
+Yes. A reference to OmeeeChan and me somewhere in the code comments or credits files would be appreciated.
