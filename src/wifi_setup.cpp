@@ -17,6 +17,7 @@ knomi_wifi_scan_t wifi_scan;
 knomi_config_t knomi_config;
 
 void webserver_setup(void);
+void initCamera(void);
 
 static uint16_t knomi_config_require = WEB_POST_NULL;
 
@@ -322,14 +323,18 @@ restart:
     if (knomi_config_require & WEB_POST_RESTART) {
         ESP.restart();
     }
+    
+    if (knomi_config_require & WEB_POST_RESET) {
+        knomi_factory_reset();
+    }
 }
 
 void wifi_task(void * parameter) {
-
     eeprom_init();
     wifi_config_loop(true);
     WiFi.scanNetworks(true, false, true, 75U);
     webserver_setup();
+    initCamera();
 
     while (1) {
         wifi_scan_refresh();

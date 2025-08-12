@@ -1,6 +1,8 @@
 #ifndef PINOUT_KNOMI_V2_H
 #define PINOUT_KNOMI_V2_H
 
+//Modification by Engr. Jerome Ballad, ECE
+
 #define BOOT_PIN     0
 
 // common i2c
@@ -8,9 +10,9 @@
 #define I2C0_SPEED   100000
 #define I2C0_SCL_PIN 1
 #define I2C0_SDA_PIN 2
-// #define I2C1_SPEED   100000
-// #define I2C1_SCL_PIN 3
-// #define I2C1_SDA_PIN 4
+ #define I2C1_SPEED   100000
+ #define I2C1_SCL_PIN 3
+ #define I2C1_SDA_PIN 4
 
 // GC9A01 SPI TFT
 // #define GC9A01_MISO_PIN 13
@@ -31,24 +33,24 @@
 #define LIS2DW_SUPPORT
 
 // OV2640 Camera
-#define CAM_PWDN_PIN  10
-#define CAM_RESET_PIN 11
-#define CAM_XCLK_PIN  7
-#define CAM_SDA_PIN   I2C1_SDA_PIN
-#define CAM_SCL_PIN   I2C1_SCL_PIN
-#define CAM_D9_PIN    8
-#define CAM_D8_PIN    6
-#define CAM_D7_PIN    5
-#define CAM_D6_PIN    47
-#define CAM_D5_PIN    39
-#define CAM_D4_PIN    41
-#define CAM_D3_PIN    40
-#define CAM_D2_PIN    38
-#define CAM_D1_PIN    42
-#define CAM_D0_PIN    45
-#define CAM_VSYNC_PIN 15
-#define CAM_HREF_PIN  9
-#define CAM_PCLK_PIN  48
+#define PWDN_GPIO_NUM -1 
+#define RESET_GPIO_NUM -1 
+#define XCLK_GPIO_NUM 7 
+#define SIOD_GPIO_NUM I2C1_SDA_PIN
+#define SIOC_GPIO_NUM I2C1_SCL_PIN
+
+#define Y2_GPIO_NUM 38 
+#define Y3_GPIO_NUM 40 
+#define Y4_GPIO_NUM 41 
+#define Y5_GPIO_NUM 39 
+#define Y6_GPIO_NUM 47 
+#define Y7_GPIO_NUM 5  
+#define Y8_GPIO_NUM 6  
+#define Y9_GPIO_NUM 8  
+
+#define VSYNC_GPIO_NUM 15 
+#define HREF_GPIO_NUM 9
+#define PCLK_GPIO_NUM 48
 
 // Button
 #define BTN_1_PIN I2C1_SDA_PIN

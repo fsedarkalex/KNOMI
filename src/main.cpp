@@ -17,6 +17,7 @@ void wifi_task(void * parameter);
 void moonraker_task(void * parameter);
 void setup() {
     Serial.begin(115200);
+    setCpuFrequencyMhz(240); //uncomment to set clock to 240Mhz for better camera quality; this will draw more power and will have thermal issues
     while (!Serial)
         delay(10);
     Serial.println("\r\n\r\n------------- Knomi startup -----------\r\n");
@@ -56,18 +57,18 @@ void setup() {
 #endif
 
     xTaskCreate(wifi_task, "wifi",
-        4096,  // Stack size (bytes)
+        8192,  // Stack size (bytes)
         NULL,  // Parameter to pass
         8,     // Task priority
         NULL   // Task handle
         );
 
-    xTaskCreate(moonraker_task, "moonraker",
-        4096,  // Stack size (bytes)
-        NULL,  // Parameter to pass
-        7,     // Task priority
-        NULL   // Task handle
-        );
+    //xTaskCreate(moonraker_task, "moonraker",
+    //    4096,  // Stack size (bytes)
+    //    NULL,  // Parameter to pass
+    //    7,     // Task priority
+    //    NULL   // Task handle
+    //    );
 }
 
 void loop() {

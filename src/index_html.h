@@ -320,7 +320,7 @@ text-align: center;">
     }
     .popup {
         background-color: #ffffff;
-        max-width: 400px;
+        max-width: 500px;
         min-width: 200px;
         height: auto;
         border-radius: 5px;
@@ -334,6 +334,7 @@ text-align: center;">
     }
     .popup_content {
         height: auto;
+        width: auto;
         line-height: 25px;
         padding: 15px 10px;
         text-align: left;
@@ -397,6 +398,7 @@ text-align: center;">
             var ssid = document.getElementById("ap-ssid").value;
             var pwd = document.getElementById("ap-pwd").value;
             var name = document.getElementById("hostname").value;
+            var camstate = document.getElementById("camstate").value;
             document.getElementById("popup_title_id").innerHTML="KNOMI Config";
             document.getElementById("popup_content_id").innerHTML="<div>" + "WiFi mode: "+ "<font color='#C02E2F'>" + mode + "</font><br>"
                                                                 + "AP SSID: " + "<font color='#C02E2F'>" + ssid + "</font><br>"
@@ -411,6 +413,32 @@ text-align: center;">
             }
             return popup_btn;
         }
+
+        async function showPopupCamera() {
+            popup_clicked = false;
+            popup_btn = false;
+
+            document.getElementById("popup_title_id").innerHTML = "Nozzle Camera";
+            if ($camavailable$) {
+              document.getElementById("popup_content_id").innerHTML = 
+                "<img id='cameraStream' src='/stream' alt='Camera Stream' style='width: 100%; border-radius: 10px;'><br/><p><b style='font-size:120%;'>" +
+                "Moonraker Webcam Settings</b><br/>Stream Type: MJPEG<br/><b>Camera Stream URL:</b> <span id='camurl'></span><br/>" +
+                "<i>Leave Snapsshot URL blank</i><br/><small>You might need to replace the Hostname with knomi IP</small></p>";
+              document.getElementById("camurl").innerHTML = "http://" + document.getElementById("hostname").value + "/stream";
+            } else {
+              document.getElementById("popup_content_id").innerHTML = 
+                "<b>Camera image is not available.</b><br/><p>Check wiring and module.</p><p>Camera Status: <b>$camstate$</b></p>" +
+                "<small>Only OV2640 Camera modules are supported.<br/>Do not change camera wiring while knomi is powered on.</small>";
+            }
+            document.getElementById("popup_id").style.display = "block";
+
+            await waitPopupBtn(); // Wait for user action (Confirm/Cancel)
+
+            if (!popup_btn) {
+                document.getElementById("popup_id").style.display = "none"; // Hide popup if Cancel is clicked
+            }
+        }
+
         async function showPopupRestart(){
             popup_clicked = false;
             popup_btn = false;
@@ -432,6 +460,28 @@ text-align: center;">
         function popupCancel(){
             popup_clicked = true;
             popup_btn = false;
+        }
+        
+        async function showPopupFactoryReset(){
+            popup_clicked = false;
+            popup_btn = false;
+            document.getElementById("popup_title_id").innerHTML="Factory Reset?";
+            document.getElementById("popup_content_id").innerHTML="This will erase all settings and restore defaults.<br>Are you sure you want to proceed?";
+            var popup_id = document.getElementById("popup_id");
+            popup_id.style.display = "block";
+            await waitPopupBtn();
+            if (popup_btn) {
+                document.getElementById('factory-reset-form').submit();
+            }
+            return popup_btn;
+            }
+            function popupConfirm(){
+                popup_clicked = true;
+                popup_btn = true;
+            }
+            function popupCancel(){
+                popup_clicked = true;
+                popup_btn = false;
         }
   </script>
 </head>
@@ -519,12 +569,15 @@ text-align: center;">
     </div>
     <div class="card-grid">
       <div class="card">
+        <input type="submit" style="background-color: #C02E2F; margin-bottom: 5px;" id="sys-btn" value="Nozzle Camera" onclick="showPopupCamera()">
         <a href="update"><input type="submit" style="background-color: #C02E2F" id="sys-btn" value ="Update Firmware"></a>
         <span style="width: 10px;"></span>
         <form id="restart-form" name="restart-form" action="/" method="POST">
             <input type="hidden" name="restart">
         </form>
-        <input type ="submit" style="background-color: #000000" id="sys-btn" value="Restart" onclick="showPopupRestart()">
+        <input type ="submit" style="background-color: #000000; margin-bottom: 5px;" id="sys-btn" value="Restart" onclick="showPopupRestart()">
+        </form>
+        <input type="submit" id="sys-btn" style="background-color:#000000;" value="Factory Reset" onclick="showPopupFactoryReset()">
       </div>
     </div>
     <div id="popup_id">

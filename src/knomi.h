@@ -41,8 +41,9 @@ extern knomi_wifi_scan_t wifi_scan;
 #define WEB_POST_MOONRAKER            BIT(4)
 #define WEB_POST_WIFI_REFRESH         BIT(5)
 #define WEB_POST_RESTART              BIT(6)
+#define WEB_POST_RESET                BIT(7)
+#define LOCAL_POST_LV_THEME_COLOR     BIT(8)
 
-#define LOCAL_POST_LV_THEME_COLOR     BIT(7)
 #define EEPROM_PARA_CHANGED     (WEB_POST_WIFI_CONFIG_AP   | \
                                  WEB_POST_WIFI_CONFIG_STA  | \
                                  WEB_POST_WIFI_CONFIG_MODE | \

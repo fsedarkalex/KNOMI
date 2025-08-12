@@ -10,7 +10,7 @@
 
 #define HOSTNAME "KNOMI"
 #define AP_SSID "BTT-KNOMI" // Create a SSID for BTT KNOMI Access Point
-#define AP_PWD "" // Default no password
+#define AP_PWD "000000123" // Default no password
 #define AP_LOCAL_IP IPAddress(192, 168, 20, 1) // access point IP
 #define AP_GATEWAY  IPAddress(192, 168, 20, 1) // gateway IP
 #define AP_SUBNET   IPAddress(255, 255, 255, 0) // subnet mask
