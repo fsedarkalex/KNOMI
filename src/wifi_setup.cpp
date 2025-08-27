@@ -327,7 +327,7 @@ restart:
     }
 
     // restart
-    if (knomi_config_require & (WEB_POST_RESTART || WEB_POST_CAMERA)) {
+    if (knomi_config_require & WEB_POST_RESTART) {
         ESP.restart();
     }
     

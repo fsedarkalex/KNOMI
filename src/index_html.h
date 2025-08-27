@@ -378,6 +378,7 @@ text-align: center;">
         }
 
         async function showPopupKlipper(){
+            resetPopup();
             popup_clicked = false;
             popup_btn = false;
             var ip = document.getElementById("ip").value;
@@ -397,6 +398,7 @@ text-align: center;">
             return popup_btn;
         }
         async function showPopupKnomi(){
+            resetPopup();
             popup_clicked = false;
             popup_btn = false;
             var obj_mode = document.getElementById("mode");
@@ -421,6 +423,7 @@ text-align: center;">
         }
 
         async function showPopupCamera() {
+            resetPopup();
             popup_clicked = false;
             popup_btn = false;
 
@@ -444,13 +447,14 @@ text-align: center;">
             }
         }
         async function showPopupCamSave(){
+            resetPopup();
             popup_clicked = false;
             popup_btn = false;
             var ip = document.getElementById("ip").value;
             var port = document.getElementById("port").value;
             var tool = document.getElementById("tool").value;
             document.getElementById("popup_title_id").innerHTML="Camera Config";
-            document.getElementById("popup_content_id").innerHTML="<div>To save and apply camera settings, your knomi must be restarted.<br/>Do you want to save and restart now?<br/><br/><small>This action should not affect a running print. Be careful though. Reload about a minute after saving.</small></div>";
+            document.getElementById("popup_content_id").innerHTML="<div>After saving your camera settings, you will likely have to restart consuming services like moonraker-obico or reload mainsail WebUI to make the stream work again.<br/><br/>In doubt, also restart KNOMI if the stream is not working.</div>";
 
             var popup_id = document.getElementById("popup_id");
             popup_id.style.display = "block";
@@ -462,6 +466,7 @@ text-align: center;">
         }
 
         async function showPopupRestart(){
+            resetPopup();
             popup_clicked = false;
             popup_btn = false;
             document.getElementById("popup_title_id").innerHTML="Restart?";
@@ -478,8 +483,6 @@ text-align: center;">
         function popupConfirm(){
             popup_clicked = true;
             popup_btn = true;
-
-            resetPopup();
         }
         function popupCancel(){
             popup_clicked = true;
@@ -487,6 +490,7 @@ text-align: center;">
         }
         
         async function showPopupFactoryReset(){
+            resetPopup();
             popup_clicked = false;
             popup_btn = false;
             document.getElementById("popup_title_id").innerHTML="Factory Reset?";
@@ -612,20 +616,21 @@ text-align: center;">
           <h3>Camera Settings</h3>
           <label class="ant-form-item-row">
               <span>Resolution:&nbsp</span>
-              <select id ="mode" name="camres">
+              <select id="camres" name="camres" style="width:200px">
                 <option value="1" $cr_sel_1$>QVGA (lowest)</option>
                 <option value="2" $cr_sel_2$>CIF</option>
-                <option value="3" $cr_sel_3$>HVGA (recommended)</option>
-                <option value="4" $cr_sel_4$>VGA</option>
-                <option value="5" $cr_sel_5$>SVGA (highest)</option>
+                <option value="3" $cr_sel_3$>HVGA</option>
+                <option value="4" $cr_sel_4$>VGA (recommended with obico)</option>
+                <option value="5" $cr_sel_5$>SVGA (recommended else)</option>
+                <option value="6" $cr_sel_6$>XGA</option>
+                <option value="8" $cr_sel_6$>SXGA (highest)</option>
               </select>
-              $camres$
           </label>
           <label class="ant-form-item-row">
               <span>(M)JPEG Quality:&nbsp</span>
-              <select id ="mode" name="camqual">
-                <option value="1" $cq_sel_01$>Maximum Quality, insanely low FPS</option>
-                <option value="5" $cq_sel_05$>Higher Quality, low FPS</option>
+              <select id="camqual" name="camqual" style="width:200px">
+                <option value="1" $cq_sel_1$>Maximum Quality, insanely low FPS</option>
+                <option value="5" $cq_sel_5$>Higher Quality, low FPS</option>
                 <option value="10" $cq_sel_10$>High Quality, fair FPS</option>
                 <option value="15" $cq_sel_15$>Good Quality, high FPS</option>
                 <option value="20" $cq_sel_20$>Fair Quality, higher FPS</option>
@@ -637,10 +642,10 @@ text-align: center;">
             <table>
               <tbody>
                 <tr><th style="width:33%;">Cam Status: </th><td>$camstate$</td></tr>
-                <tr><th>Stream URL*: </th><td id="cam_url_strm">http://knomi.local/cam/stream</td></tr>
-                <tr><th>Snapshot URL*: </th><td id="cam_url_snap">http://knomi.local/cam/snapshot</td></tr>
-                <tr><th>Service: </th><td>MJPEG-Streamer</td></tr>
-                <!--tr><th>Target FPS: </th><td><i>Recommended max. 25</i></td></tr-->
+                <tr><th style="width:33%;">Stream URL*: </th><td id="cam_url_strm">http://knomi.local/cam/stream</td></tr>
+                <tr><th style="width:33%;">Snapshot URL*: </th><td id="cam_url_snap">http://knomi.local/cam/snapshot</td></tr>
+                <tr><th style="width:33%;">Service: </th><td>MJPEG-Streamer</td></tr>
+                <!--tr><th style="width:33%;">Target FPS: </th><td><i>Recommended max. 25</i></td></tr-->
               </tbody>
             </table>
             <small>*) If these URLs are not working, try to replace the hostname with knomi's IP-Address</small>

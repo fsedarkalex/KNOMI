@@ -5,6 +5,8 @@
 #include "camstate.h"
 #include "knomi.h"
 
+void initCamera(void);
+
 static AsyncWebServer server(SERVER_PORT);
 
 typedef struct {
@@ -221,11 +223,11 @@ String knomi_html_processor(const String& var){
         value = "selected";
     } else  if (var == "camres") {
         value = knomi_config.cam_res;
-    } else  if (var.length() == 8 && var.substring(0, 7) == "cr_sel_" && var.substring(7, 1) == knomi_config.cam_res) {
+    } else  if (var.length() == 8 && var.substring(0, 7) == "cr_sel_" && var.substring(7, 8) == knomi_config.cam_res) {
         value = "selected";
-    } else  if (var.length() == 8 && var.substring(0, 7) == "cq_sel_" && var.substring(7, 1) == knomi_config.cam_quality) {
+    } else  if (var.length() == 8 && var.substring(0, 7) == "cq_sel_" && var.substring(7, 8) == knomi_config.cam_quality) {
         value = "selected";
-    } else  if (var.length() == 9 && var.substring(0, 7) == "cq_sel_" && var.substring(7, 2) == knomi_config.cam_quality) {
+    } else  if (var.length() == 9 && var.substring(0, 7) == "cq_sel_" && var.substring(7, 9) == knomi_config.cam_quality) {
         value = "selected";
     }
     return value;    // Could just be something between two normal $ signs in the HTML...
@@ -426,7 +428,8 @@ void webserver_setup(void) {
             request->send(200, "text/html", "SSID: " + sta_ssid + "<br>PWD: " + sta_pwd + \
                     "<br>The BTT KNOMI will now attempt to connect to the specified network.<br>If it fails after 15s then this access point will be re-launched and you can connect to it to try again. <br><a href=\"/\">Return to Home Page</a>");
         } else if (post_require & WEB_POST_CAMERA){
-            request->send(200, "text/html", "Camera configuration has been modified.<br/>KNOMI is restarting, please wait for the restart to complete and re-establish the connection. <br><a href=\"/\">Return to Home Page</a>");
+            initCamera();
+            request->send(200, "text/html", "Camera configuration has been modified. If there are any issues, please restart knomi. <br><a href=\"/\">Return to Home Page</a>");
         } else if (post_require & WEB_POST_LOCAL_HOSTNAME){
             request->send(200, "text/html", "The hostname needs to be restarted before it takes effect.<br>Please return to the home page and manually restart. <br><a href=\"/\">Return to Home Page</a>");
         } else if (post_require & WEB_POST_RESTART){
@@ -440,8 +443,8 @@ void webserver_setup(void) {
             request->send_P(200, "text/html", index_html, knomi_html_processor);
         }
     });
-    server.on("/stream", HTTP_GET, streamJpg);
-    server.on("/snapshot", HTTP_GET, camframeJpg);
+    server.on("/cam/stream", HTTP_GET, streamJpg);
+    server.on("/cam/snapshot", HTTP_GET, camframeJpg);
     server.addHandler(new CaptiveRequestHandler()).setFilter(ON_AP_FILTER);
     server.begin();
 }
