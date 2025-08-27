@@ -13,8 +13,9 @@ typedef struct {
 } camera_frame_t;
 
 #define PART_BOUNDARY "123456789000000000000987654321"
-static const char* STREAM_CONTENT_TYPE = "multipart/x-mixed-replace;boundary=" PART_BOUNDARY;
+static const char* STREAM_CONTENT_TYPE = "multipart/x-mixed-replace; boundary=" PART_BOUNDARY;
 static const char* STREAM_BOUNDARY = "\r\n--" PART_BOUNDARY "\r\n";
+static const char* STREAM_BOUNDARY_FINAL = "\r\n--" PART_BOUNDARY "--\r\n";
 static const char* STREAM_PART = "Content-Type: %s\r\nContent-Length: %u\r\n\r\n";
 static const char * JPG_CONTENT_TYPE = "image/jpeg";
 static const char * BMP_CONTENT_TYPE = "image/x-windows-bmp";
@@ -45,6 +46,7 @@ public:
     request->send_P(200, "text/html", captive_html);
   }
 };
+
 class AsyncJpegStreamResponse: public AsyncAbstractResponse {
     private:
         camera_frame_t _frame;
@@ -52,19 +54,28 @@ class AsyncJpegStreamResponse: public AsyncAbstractResponse {
         size_t _jpg_buf_len;
         uint8_t * _jpg_buf;
         uint64_t lastAsyncRequest;
+        bool _mjpeg;
+        bool _finished;
     public:
-        AsyncJpegStreamResponse(){
+        AsyncJpegStreamResponse(bool returnMJPEG){
             _callback = nullptr;
             _code = 200;
             _contentLength = 0;
-            _contentType = STREAM_CONTENT_TYPE;
             _sendContentLength = false;
             _chunked = true;
             _index = 0;
             _jpg_buf_len = 0;
             _jpg_buf = NULL;
+            _mjpeg = returnMJPEG;
+            _finished = false;
             lastAsyncRequest = 0;
             memset(&_frame, 0, sizeof(camera_frame_t));
+
+            if (_mjpeg) {
+                _contentType = "multipart/x-mixed-replace; boundary=" PART_BOUNDARY;
+            } else {
+                _contentType = JPG_CONTENT_TYPE;
+            }
         }
         ~AsyncJpegStreamResponse(){
             if(_frame.fb){
@@ -78,6 +89,7 @@ class AsyncJpegStreamResponse: public AsyncAbstractResponse {
             return true;
         }
         virtual size_t _fillBuffer(uint8_t *buf, size_t maxLen) override {
+            if (_finished) return 0;
             size_t ret = _content(buf, maxLen, _index);
             if(ret != RESPONSE_TRY_AGAIN){
                 _index += ret;
@@ -88,8 +100,6 @@ class AsyncJpegStreamResponse: public AsyncAbstractResponse {
             if(!_frame.fb || _frame.index == _jpg_buf_len){
                 if(index && _frame.fb){
                     uint64_t end = (uint64_t)micros();
-                    int fp = (end - lastAsyncRequest) / 1000;
-                    //log_printf("Size: %uKB, Time: %ums (%.1ffps)\n", _jpg_buf_len/1024, fp);
                     lastAsyncRequest = end;
                     if(_frame.fb->format != PIXFORMAT_JPEG){
                         free(_jpg_buf);
@@ -98,23 +108,32 @@ class AsyncJpegStreamResponse: public AsyncAbstractResponse {
                     _frame.fb = NULL;
                     _jpg_buf_len = 0;
                     _jpg_buf = NULL;
+
+                    if (!_mjpeg) {
+                        _finished = true;
+                        return 0;
+                    }
                 }
-                if(maxLen < (strlen(STREAM_BOUNDARY) + strlen(STREAM_PART) + strlen(JPG_CONTENT_TYPE) + 8)){
-                    //log_w("Not enough space for headers");
+
+                if(_mjpeg && maxLen < (strlen(STREAM_BOUNDARY) + strlen(STREAM_PART) + strlen(JPG_CONTENT_TYPE) + 8)){
                     return RESPONSE_TRY_AGAIN;
                 }
-                //get frame
-                _frame.index = 0;
 
+                _frame.index = 0;
                 _frame.fb = esp_camera_fb_get();
                 if (_frame.fb == NULL) {
                     log_e("Camera frame failed");
+                    if (_mjpeg) {
+                        size_t flen = strlen(STREAM_BOUNDARY_FINAL);
+                        memcpy(buffer, STREAM_BOUNDARY_FINAL, flen);
+                        _finished = true;
+                        return flen;
+                    }
                     return 0;
                 }
 
                 if(_frame.fb->format != PIXFORMAT_JPEG){
-                    unsigned long st = millis();
-                    bool jpeg_converted = frame2jpg(_frame.fb, 80, &_jpg_buf, &_jpg_buf_len);
+                    bool jpeg_converted = frame2jpg(_frame.fb, 100, &_jpg_buf, &_jpg_buf_len);
                     if(!jpeg_converted){
                         log_e("JPEG compression failed");
                         esp_camera_fb_return(_frame.fb);
@@ -123,33 +142,30 @@ class AsyncJpegStreamResponse: public AsyncAbstractResponse {
                         _jpg_buf = NULL;
                         return 0;
                     }
-                    log_i("JPEG: %lums, %uB", millis() - st, _jpg_buf_len);
                 } else {
                     _jpg_buf_len = _frame.fb->len;
                     _jpg_buf = _frame.fb->buf;
                 }
 
-                //send boundary
-                size_t blen = 0;
-                if(index){
-                    blen = strlen(STREAM_BOUNDARY);
+                if (_mjpeg) {
+                    // ----- MJPEG header + frame -----
+                    size_t blen = strlen(STREAM_BOUNDARY);
                     memcpy(buffer, STREAM_BOUNDARY, blen);
                     buffer += blen;
+
+                    size_t hlen = sprintf((char *)buffer, STREAM_PART, JPG_CONTENT_TYPE, _jpg_buf_len);
+                    buffer += hlen;
+
+                    size_t copyLen = maxLen - hlen - blen;
+                    if(copyLen > _jpg_buf_len) copyLen = _jpg_buf_len;
+                    memcpy(buffer, _jpg_buf, copyLen);
+
+                    _frame.index += copyLen;
+                    return blen + hlen + copyLen;
                 }
-                //send header
-                size_t hlen = sprintf((char *)buffer, STREAM_PART, JPG_CONTENT_TYPE, _jpg_buf_len);
-                buffer += hlen;
-                //send frame
-                hlen = maxLen - hlen - blen;
-                if(hlen > _jpg_buf_len){
-                    maxLen -= hlen - _jpg_buf_len;
-                    hlen = _jpg_buf_len;
-                }
-                memcpy(buffer, _jpg_buf, hlen);
-                _frame.index += hlen;
-                return maxLen;
             }
 
+            // ----- Frame-Data -----
             size_t available = _jpg_buf_len - _frame.index;
             if(maxLen > available){
                 maxLen = available;
@@ -160,6 +176,8 @@ class AsyncJpegStreamResponse: public AsyncAbstractResponse {
             return maxLen;
         }
 };
+
+
 
 // This function will populate variables on the main html index page.
 // Variables include WiFi SSIDs/RSSIs and the current mode.
@@ -200,6 +218,14 @@ String knomi_html_processor(const String& var){
     } else if (var == "camavailable") {
         value = (cam_error == ESP_OK ? "true" : "false");
     } else  if (var == knomi_config.mode) {
+        value = "selected";
+    } else  if (var == "camres") {
+        value = knomi_config.cam_res;
+    } else  if (var.length() == 8 && var.substring(0, 7) == "cr_sel_" && var.substring(7, 1) == knomi_config.cam_res) {
+        value = "selected";
+    } else  if (var.length() == 8 && var.substring(0, 7) == "cq_sel_" && var.substring(7, 1) == knomi_config.cam_quality) {
+        value = "selected";
+    } else  if (var.length() == 9 && var.substring(0, 7) == "cq_sel_" && var.substring(7, 2) == knomi_config.cam_quality) {
         value = "selected";
     }
     return value;    // Could just be something between two normal $ signs in the HTML...
@@ -274,6 +300,18 @@ web_post_info_t web_post_info[] = {
         .require = WEB_POST_MOONRAKER,
     },
     {
+        .name = "camres",
+        .value = knomi_config.cam_res,
+        .v_len = sizeof(knomi_config.cam_res),
+        .require = WEB_POST_CAMERA,
+    },
+    {
+        .name = "camqual",
+        .value = knomi_config.cam_quality,
+        .v_len = sizeof(knomi_config.cam_quality),
+        .require = WEB_POST_CAMERA,
+    },
+    {
         .name = "refresh",
         .value = NULL,
         .v_len = 0,
@@ -306,7 +344,23 @@ void streamJpg(AsyncWebServerRequest *request){
         sprintf(buf, "Camera module is not connected or defective. Error Code: 0x%x", cam_error);
         request->send(503, "text/plain", buf);
     } else {
-        AsyncJpegStreamResponse *response = new AsyncJpegStreamResponse();
+        AsyncJpegStreamResponse *response = new AsyncJpegStreamResponse(true);
+        if(!response){
+            request->send(501);
+            return;
+        }
+        response->addHeader("Access-Control-Allow-Origin", "*");
+        request->send(response);
+    }
+}
+
+void camframeJpg(AsyncWebServerRequest *request){
+    if (cam_error != ESP_OK) {
+        char buf[70];
+        sprintf(buf, "Camera module is not connected or defective. Error Code: 0x%x", cam_error);
+        request->send(503, "text/plain", buf);
+    } else {
+        AsyncJpegStreamResponse *response = new AsyncJpegStreamResponse(false);
         if(!response){
             request->send(501);
             return;
@@ -371,6 +425,8 @@ void webserver_setup(void) {
             String sta_pwd = knomi_config.sta_pwd;
             request->send(200, "text/html", "SSID: " + sta_ssid + "<br>PWD: " + sta_pwd + \
                     "<br>The BTT KNOMI will now attempt to connect to the specified network.<br>If it fails after 15s then this access point will be re-launched and you can connect to it to try again. <br><a href=\"/\">Return to Home Page</a>");
+        } else if (post_require & WEB_POST_CAMERA){
+            request->send(200, "text/html", "Camera configuration has been modified.<br/>KNOMI is restarting, please wait for the restart to complete and re-establish the connection. <br><a href=\"/\">Return to Home Page</a>");
         } else if (post_require & WEB_POST_LOCAL_HOSTNAME){
             request->send(200, "text/html", "The hostname needs to be restarted before it takes effect.<br>Please return to the home page and manually restart. <br><a href=\"/\">Return to Home Page</a>");
         } else if (post_require & WEB_POST_RESTART){
@@ -385,6 +441,7 @@ void webserver_setup(void) {
         }
     });
     server.on("/stream", HTTP_GET, streamJpg);
+    server.on("/snapshot", HTTP_GET, camframeJpg);
     server.addHandler(new CaptiveRequestHandler()).setFilter(ON_AP_FILTER);
     server.begin();
 }

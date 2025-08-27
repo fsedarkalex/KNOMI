@@ -53,7 +53,7 @@ text-align: center;">
       font-weight: bold;
       color: #034078
     }
-    input[id="sys-btn"] {
+    input[id="sys-btn"], .anybtn {
       border: none;
       color: #FEFCFB;
       padding: 15px 15px;
@@ -371,6 +371,12 @@ text-align: center;">
             popup_id.style.display = "none";
             return Promise.resolve(true)
         }
+
+        function resetPopup() {
+          document.getElementById('popup_cancel').style.display = 'inline-block';
+          document.getElementById('popup_confirm').style.display = 'inline-block';
+        }
+
         async function showPopupKlipper(){
             popup_clicked = false;
             popup_btn = false;
@@ -418,17 +424,16 @@ text-align: center;">
             popup_clicked = false;
             popup_btn = false;
 
-            document.getElementById("popup_title_id").innerHTML = "Nozzle Camera";
+            document.getElementById('popup_confirm').style.display = 'none';
+
+            document.getElementById("popup_title_id").innerHTML = "Camera Preview";
             if ($camavailable$) {
               document.getElementById("popup_content_id").innerHTML = 
-                "<img id='cameraStream' src='/stream' alt='Camera Stream' style='width: 100%; border-radius: 10px;'><br/><p><b style='font-size:120%;'>" +
-                "Moonraker Webcam Settings</b><br/>Stream Type: MJPEG<br/><b>Camera Stream URL:</b> <span id='camurl'></span><br/>" +
-                "<i>Leave Snapsshot URL blank</i><br/><small>You might need to replace the Hostname with knomi IP</small></p>";
-              document.getElementById("camurl").innerHTML = "http://" + document.getElementById("hostname").value + "/stream";
+                "<img id='cameraStream' src='/cam/stream' alt='Camera Stream' style='width: 100%; border-radius: 10px;'>";
             } else {
               document.getElementById("popup_content_id").innerHTML = 
                 "<b>Camera image is not available.</b><br/><p>Check wiring and module.</p><p>Camera Status: <b>$camstate$</b></p>" +
-                "<small>Only OV2640 Camera modules are supported.<br/>Do not change camera wiring while knomi is powered on.</small>";
+                "<small>Only OV2640 Camera modules are officially supported.<br/>Do not change camera wiring while knomi is powered on.</small>";
             }
             document.getElementById("popup_id").style.display = "block";
 
@@ -437,6 +442,23 @@ text-align: center;">
             if (!popup_btn) {
                 document.getElementById("popup_id").style.display = "none"; // Hide popup if Cancel is clicked
             }
+        }
+        async function showPopupCamSave(){
+            popup_clicked = false;
+            popup_btn = false;
+            var ip = document.getElementById("ip").value;
+            var port = document.getElementById("port").value;
+            var tool = document.getElementById("tool").value;
+            document.getElementById("popup_title_id").innerHTML="Camera Config";
+            document.getElementById("popup_content_id").innerHTML="<div>To save and apply camera settings, your knomi must be restarted.<br/>Do you want to save and restart now?<br/><br/><small>This action should not affect a running print. Be careful though. Reload about a minute after saving.</small></div>";
+
+            var popup_id = document.getElementById("popup_id");
+            popup_id.style.display = "block";
+            await waitPopupBtn();
+            if (popup_btn) {
+                document.getElementById('cam-form').submit();
+            }
+            return popup_btn;
         }
 
         async function showPopupRestart(){
@@ -456,6 +478,8 @@ text-align: center;">
         function popupConfirm(){
             popup_clicked = true;
             popup_btn = true;
+
+            resetPopup();
         }
         function popupCancel(){
             popup_clicked = true;
@@ -483,6 +507,15 @@ text-align: center;">
                 popup_clicked = true;
                 popup_btn = false;
         }
+
+        function updateUrls() {
+          var hostname = document.getElementById("hostname").value.toLowerCase();
+          document.getElementById("cam_url_strm").innerHTML="http://" + hostname + ".local/cam/stream";
+          document.getElementById("cam_url_snap").innerHTML="http://" + hostname + ".local/cam/snapshot";
+        }
+
+        setInterval(updateUrls, 2500);
+        setTimeout(updateUrls, 150);
   </script>
 </head>
 <body>
@@ -490,25 +523,6 @@ text-align: center;">
     <h1>BTT KNOMI SETTINGS MANAGER ;)</h1>
   </div>
   <div class="content">
-    <div class="card-grid">
-      <div class="card">
-        <form id="klipper-form" name="klipper-form" action="/" method="POST">
-            <label class="ant-form-item-row">
-                <span>Klipper IP:&nbsp</span>
-                <input type="text" id ="ip" name="ip" $ip$ maxlength="64" placeholder="1.2.3.4 or printer.local">
-            </label>
-            <label class="ant-form-item-row">
-                <span>Klipper Port:&nbsp</span>
-                <input type="text" id ="port" name="port" $port$ maxlength="5">
-            </label>
-            <label class="ant-form-item-row">
-                <span>Tool ID:&nbsp</span>
-                <input type="text" id ="tool" name="tool" $tool$ maxlength="6">
-            </label>
-        </form>
-        <input type ="submit" id="submit-btn" value ="Submit" onclick="showPopupKlipper()">
-      </div>
-    </div>
     <div id="modalOne" class="modal">
       <div class="modal-content">
         <div class="contact-form">
@@ -520,11 +534,39 @@ text-align: center;">
               <input class="fname" type="text" name="password" placeholder="password" />
               <span></span>
             </div>
-            <button type="submit" >Connect</button>
+            <button type="submit">Connect</button>
           </form>
         </div>
       </div>
     </div>
+
+
+    <div class="card-grid">
+      <div class="card">
+        <h3>KNOMI Network Settings</h3>
+        <form id="knomi-form" name="knomi-form" action="/" method="POST">
+          <select id ="mode" name="mode">
+            <option value="ap" $ap$>AP</option>
+            <option value="sta" $sta$>STA</option>
+            <option value="apsta" $apsta$>AP+STA</option>
+          </select>
+          <label class="ant-form-item-row">
+              <span>AP SSID:&nbsp</span>
+              <input type="text" id ="ap-ssid" name="ap_ssid" $ap_ssid$ minlength="1" maxlength="32" required="required">
+          </label>
+          <label class="ant-form-item-row">
+              <span>AP PWD:&nbsp</span>
+              <input type="text" id ="ap-pwd" name="ap_password" $ap_password$ minlength="6" maxlength="64">
+          </label>
+          <label class="ant-form-item-row">
+              <span>Hostname:&nbsp</span>
+              <input type="text" id ="hostname" name="hostname" $hostname$ maxlength="15" onchange="updateUrls()">
+          </label>
+        </form>
+        <input type ="submit" id="submit-btn" value ="Submit" onclick="showPopupKnomi()">
+      </div>
+    </div>
+
     <div class="table-container">
       <table>
         <thead>
@@ -545,31 +587,74 @@ text-align: center;">
 
     <div class="card-grid">
       <div class="card">
-        <form id="knomi-form" name="knomi-form" action="/" method="POST">
-          <select id ="mode" name="mode">
-            <option value="ap" $ap$>AP</option>
-            <option value="sta" $sta$>STA</option>
-            <option value="apsta" $apsta$>AP+STA</option>
-          </select>
-          <label class="ant-form-item-row">
-              <span>AP SSID:&nbsp</span>
-              <input type="text" id ="ap-ssid" name="ap_ssid" $ap_ssid$ minlength="1" maxlength="32" required="required">
-          </label>
-          <label class="ant-form-item-row">
-              <span>AP PWD:&nbsp</span>
-              <input type="text" id ="ap-pwd" name="ap_password" $ap_password$ minlength="6" maxlength="64">
-          </label>
-          <label class="ant-form-item-row">
-              <span>Hostname:&nbsp</span>
-              <input type="text" id ="hostname" name="hostname" $hostname$ maxlength="15">
-          </label>
+        <form id="klipper-form" name="klipper-form" action="/" method="POST">
+          <h3>Printer Connection Settings</h3>
+            <label class="ant-form-item-row">
+                <span>Klipper IP:&nbsp</span>
+                <input type="text" id ="ip" name="ip" $ip$ maxlength="64" placeholder="1.2.3.4 or printer.local">
+            </label>
+            <label class="ant-form-item-row">
+                <span>Klipper Port:&nbsp</span>
+                <input type="text" id ="port" name="port" $port$ maxlength="5">
+            </label>
+            <label class="ant-form-item-row">
+                <span>Tool ID:&nbsp</span>
+                <input type="text" id ="tool" name="tool" $tool$ maxlength="6">
+            </label>
         </form>
-        <input type ="submit" id="submit-btn" value ="Submit" onclick="showPopupKnomi()">
+        <input type ="submit" id="submit-btn" value ="Submit" onclick="showPopupKlipper()">
       </div>
     </div>
+
     <div class="card-grid">
       <div class="card">
-        <input type="submit" style="background-color: #C02E2F; margin-bottom: 5px;" id="sys-btn" value="Nozzle Camera" onclick="showPopupCamera()">
+        <form id="cam-form" name="cam-form" action="/" method="POST">
+          <h3>Camera Settings</h3>
+          <label class="ant-form-item-row">
+              <span>Resolution:&nbsp</span>
+              <select id ="mode" name="camres">
+                <option value="1" $cr_sel_1$>QVGA (lowest)</option>
+                <option value="2" $cr_sel_2$>CIF</option>
+                <option value="3" $cr_sel_3$>HVGA (recommended)</option>
+                <option value="4" $cr_sel_4$>VGA</option>
+                <option value="5" $cr_sel_5$>SVGA (highest)</option>
+              </select>
+              $camres$
+          </label>
+          <label class="ant-form-item-row">
+              <span>(M)JPEG Quality:&nbsp</span>
+              <select id ="mode" name="camqual">
+                <option value="1" $cq_sel_01$>Maximum Quality, insanely low FPS</option>
+                <option value="5" $cq_sel_05$>Higher Quality, low FPS</option>
+                <option value="10" $cq_sel_10$>High Quality, fair FPS</option>
+                <option value="15" $cq_sel_15$>Good Quality, high FPS</option>
+                <option value="20" $cq_sel_20$>Fair Quality, higher FPS</option>
+                <option value="30" $cq_sel_30$>Low Quality, highest FPS</option>
+              </select>
+          </label>
+          <div>
+            <h5>Camera Information</h5>
+            <table>
+              <tbody>
+                <tr><th style="width:33%;">Cam Status: </th><td>$camstate$</td></tr>
+                <tr><th>Stream URL*: </th><td id="cam_url_strm">http://knomi.local/cam/stream</td></tr>
+                <tr><th>Snapshot URL*: </th><td id="cam_url_snap">http://knomi.local/cam/snapshot</td></tr>
+                <tr><th>Service: </th><td>MJPEG-Streamer</td></tr>
+                <!--tr><th>Target FPS: </th><td><i>Recommended max. 25</i></td></tr-->
+              </tbody>
+            </table>
+            <small>*) If these URLs are not working, try to replace the hostname with knomi's IP-Address</small>
+          </div>
+        </form>
+        <br/>
+        <span class="anybtn" style="background-color: #000000; margin-bottom: 5px; cursor: pointer;" onclick="showPopupCamera()">Preview Camera Stream</span><br/>
+        <input type ="submit" id="submit-btn" value ="Submit" onclick="showPopupCamSave()">
+      </div>
+    </div>
+
+    <div class="card-grid">
+      <div class="card">
+        <h3>KNOMI Maintenance</h3>
         <a href="update"><input type="submit" style="background-color: #C02E2F" id="sys-btn" value ="Update Firmware"></a>
         <span style="width: 10px;"></span>
         <form id="restart-form" name="restart-form" action="/" method="POST">
@@ -585,12 +670,14 @@ text-align: center;">
         <p id="popup_title_id" class="popup_title"></p>
         <p id="popup_content_id" class="popup_content"></p>
         <div class="popup_btn">
-          <button style="background-color: #525252" onclick="popupCancel()">Cancel</button>
-          <button onclick="popupConfirm()">Confirm</button>
+          <button id="popup_cancel" style="background-color: #525252" onclick="popupCancel()">Cancel</button>
+          <button id="popup_confirm" onclick="popupConfirm()">Confirm</button>
         </div>
       </div>
     </div>
   </div>
+
+  <small>This KNOMI is running an improved firmware-mod from <a href="https://github.com/fsedarkalex/KNOMI/tree/howto" target="_blank">fsedarkalex</a>. See Github for additional credits.</small>
 
   <script>
     let modalBtns = [...document.querySelectorAll(".showpop")];

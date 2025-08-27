@@ -20,6 +20,8 @@ typedef struct {
     char moonraker_tool[7]; // "tool0"
     char mode[6]; // "ap":WIFI_MODE_AP, "sta":WIFI_MODE_STA, "apsta":WIFI_MODE_APSTA
     lv_color_t theme_color;
+    char cam_res[2];
+    char cam_quality[3];
 } knomi_config_t;
 
 typedef struct {
@@ -43,12 +45,14 @@ extern knomi_wifi_scan_t wifi_scan;
 #define WEB_POST_RESTART              BIT(6)
 #define WEB_POST_RESET                BIT(7)
 #define LOCAL_POST_LV_THEME_COLOR     BIT(8)
+#define WEB_POST_CAMERA               BIT(9)
 
 #define EEPROM_PARA_CHANGED     (WEB_POST_WIFI_CONFIG_AP   | \
                                  WEB_POST_WIFI_CONFIG_STA  | \
                                  WEB_POST_WIFI_CONFIG_MODE | \
                                  WEB_POST_LOCAL_HOSTNAME   | \
                                  WEB_POST_MOONRAKER        | \
+                                 WEB_POST_CAMERA           | \
                                  LOCAL_POST_LV_THEME_COLOR)
 
 

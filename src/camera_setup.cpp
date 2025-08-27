@@ -30,12 +30,16 @@ void initCamera(void){
      config.grab_mode = CAMERA_GRAB_LATEST;
    
      if (psramFound()) {
-       config.frame_size = FRAMESIZE_HVGA; //FRAMESIZE_QQVGA ;
-       config.jpeg_quality = 10;
+       short camres = atoi(knomi_config.cam_res);
+       short camquality = atoi(knomi_config.cam_quality);
+       config.frame_size = (framesize_t)(FRAMESIZE_240X240 + (camres > 0 ? (camres < 9 ? camres : 2) : 2));
+       config.jpeg_quality = (camquality >= 0 ? (camquality <= 63 ? camquality : 15) : 15);
        config.fb_count = 2;
+       //config.fb_location = CAMERA_FB_IN_PSRAM;
      } else {
+       //without PSRam we likely wouldn't have that much RAM to handle higher resolutions
        config.frame_size = FRAMESIZE_QVGA ;
-       config.jpeg_quality = 10;
+       config.jpeg_quality = 15;
        config.fb_count = 2;
      }
      // Camera init

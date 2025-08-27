@@ -21,7 +21,7 @@ void initCamera(void);
 
 static uint16_t knomi_config_require = WEB_POST_NULL;
 
-// ap info + sta info + wifi mode + wifi mode
+// ap info + sta info + wifi mode + wifi mode + camera
 void knomi_config_require_change(uint16_t require) {
     knomi_config_require |= require;
 }
@@ -102,6 +102,8 @@ void eeprom_init(void) {
         strlcpy(knomi_config.moonraker_port, DEFAULT_KLIPPER_PORT, sizeof(knomi_config.moonraker_port));
         strlcpy(knomi_config.moonraker_tool, DEFAULT_KLIPPER_TOOL, sizeof(knomi_config.moonraker_tool));
         strlcpy(knomi_config.mode, "ap", sizeof(knomi_config.mode));
+        strlcpy(knomi_config.cam_res, "3", sizeof(knomi_config.cam_res));
+        strlcpy(knomi_config.cam_quality, "15", sizeof(knomi_config.cam_quality));
         knomi_config.theme_color = lv_color_hex(LV_DEFAULT_COLOR);
 
         EEPROM.put<uint32_t>(0x00, EEPROM_SIGN);
@@ -182,6 +184,10 @@ void eeprom_write_knomi_config(void) {
     Serial.println(knomi_config.moonraker_tool);
     Serial.print("mode: ");
     Serial.println(knomi_config.mode);
+    Serial.print("cam_res: ");
+    Serial.println(knomi_config.cam_res);
+    Serial.print("cam_quality: ");
+    Serial.println(knomi_config.cam_quality);
     EEPROM.put<knomi_config_t>(0x00 + EEPROM_SIGN_SIZE, knomi_config);
     EEPROM.commit();
 }
@@ -203,7 +209,8 @@ void wifi_config_loop(bool first_setup) {
         knomi_config_require = WEB_POST_LOCAL_HOSTNAME | \
                               WEB_POST_WIFI_CONFIG_AP | \
                               WEB_POST_WIFI_CONFIG_STA | \
-                              WEB_POST_WIFI_CONFIG_MODE;
+                              WEB_POST_WIFI_CONFIG_MODE | \
+                              WEB_POST_CAMERA;
     }
 
     // TODO: mDNS
@@ -320,7 +327,7 @@ restart:
     }
 
     // restart
-    if (knomi_config_require & WEB_POST_RESTART) {
+    if (knomi_config_require & (WEB_POST_RESTART || WEB_POST_CAMERA)) {
         ESP.restart();
     }
     
