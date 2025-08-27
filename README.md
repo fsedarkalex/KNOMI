@@ -3,7 +3,12 @@ BTT's Knomi 2 supports adding a OV2640 camera.
 
 [OmeeeChan](https://github.com/OmeeeChan/Knomi-V2-camera-function) took the effort to implement this camera into knomi's code rudimentally.
 
-I wanted to make this a "round thing". My fork integrates the camera smoothly into the WebUI including instructions to use it with Mainsail and vieweing status codes for error handling.
+I wanted to make this a "round thing". My fork integrates the camera smoothly into the WebUI including instructions to use it with Mainsail and viewing status codes for error handling.
+It even has config options for resolution and quality to tune your camera to your needs.
+
+I reordered the WebUI to be more logical now that it has more options.
+
+I added a snapshot feature and improved the overall stability of the webcam. Note: The Camera URLs are different compared to OmeeeChan's version and my very first release.
 
 # Where can I find the code?
 
@@ -29,6 +34,6 @@ I will update my fork as I make changes to knomi 2 code.
 
 You can put it into issues but I am not aiming to create an alternative firmware. I only want to adjust knomi to my needs, keeping things universal.
 
-# I am a representative of BTT. May we integrate your code changes back?
+# Question: I am a representative of BTT. May we integrate your code changes back?
 
-Yes. A reference to OmeeeChan and me somewhere in the code comments or credits files would be appreciated.
+Answer: Yes. A reference to OmeeeChan and me somewhere in the code comments or credits files would be appreciated.
