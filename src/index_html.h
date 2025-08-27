@@ -623,7 +623,7 @@ text-align: center;">
                 <option value="4" $cr_sel_4$>VGA (recommended with obico)</option>
                 <option value="5" $cr_sel_5$>SVGA (recommended else)</option>
                 <option value="6" $cr_sel_6$>XGA</option>
-                <option value="8" $cr_sel_6$>SXGA (highest)</option>
+                <option value="8" $cr_sel_8$>SXGA (highest)</option>
               </select>
           </label>
           <label class="ant-form-item-row">
