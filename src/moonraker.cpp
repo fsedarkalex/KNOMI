@@ -121,8 +121,6 @@ void MOONRAKER::get_printer_info(void) {
         data.nozzle_actual = int16_t(json_parse["temperature"][knomi_config.moonraker_tool]["actual"].as<double>() + 0.5f);
         data.nozzle_target = int16_t(json_parse["temperature"][knomi_config.moonraker_tool]["target"].as<double>() + 0.5f);
 #ifdef MOONRAKER_DEBUG
-        Serial.print("unoperational: ");
-        Serial.println(unoperational);
         Serial.print("printing: ");
         Serial.println(data.printing);
         Serial.print("bed_actual: ");

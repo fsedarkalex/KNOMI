@@ -63,12 +63,12 @@ void setup() {
         NULL   // Task handle
         );
 
-    //xTaskCreate(moonraker_task, "moonraker",
-    //    4096,  // Stack size (bytes)
-    //    NULL,  // Parameter to pass
-    //    7,     // Task priority
-    //    NULL   // Task handle
-    //    );
+    xTaskCreate(moonraker_task, "moonraker",
+       4096,  // Stack size (bytes)
+       NULL,  // Parameter to pass
+       7,     // Task priority
+       NULL   // Task handle
+       );
 }
 
 void loop() {

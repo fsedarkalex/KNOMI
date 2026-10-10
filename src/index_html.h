@@ -1,4 +1,4 @@
-const char index_html[] PROGMEM = R"rawliteral(<!DOCTYPE html>
+const char index_html[] PROGMEM = R"html(<!DOCTYPE html>
 <html style="font-family: Arial, Helvetica, sans-serif;
 display: inline-block;
 text-align: center;">
@@ -406,7 +406,6 @@ text-align: center;">
             var ssid = document.getElementById("ap-ssid").value;
             var pwd = document.getElementById("ap-pwd").value;
             var name = document.getElementById("hostname").value;
-            var camstate = document.getElementById("camstate").value;
             document.getElementById("popup_title_id").innerHTML="KNOMI Config";
             document.getElementById("popup_content_id").innerHTML="<div>" + "WiFi mode: "+ "<font color='#C02E2F'>" + mode + "</font><br>"
                                                                 + "AP SSID: " + "<font color='#C02E2F'>" + ssid + "</font><br>"
@@ -666,6 +665,8 @@ text-align: center;">
             <input type="hidden" name="restart">
         </form>
         <input type ="submit" style="background-color: #000000; margin-bottom: 5px;" id="sys-btn" value="Restart" onclick="showPopupRestart()">
+        <form id="factory-reset-form" name="factory-reset-form" action="/" method="POST">
+            <input type="hidden" name="factoryReset">
         </form>
         <input type="submit" id="sys-btn" style="background-color:#000000;" value="Factory Reset" onclick="showPopupFactoryReset()">
       </div>
@@ -708,4 +709,4 @@ text-align: center;">
     };
   </script>
 </body>
-</html>)rawliteral";
+</html>)html";

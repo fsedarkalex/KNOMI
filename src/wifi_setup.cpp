@@ -320,6 +320,10 @@ restart:
         Serial.println(knomi_config.moonraker_tool);
     }
 
+    if (knomi_config_require & WEB_POST_CAMERA) {
+        knomi_config_require &= ~WEB_POST_CAMERA;
+        initCamera();
+    }
     // refresh wifi scan
     if (knomi_config_require & WEB_POST_WIFI_REFRESH) {
         knomi_config_require &= ~WEB_POST_WIFI_REFRESH;
@@ -341,7 +345,6 @@ void wifi_task(void * parameter) {
     wifi_config_loop(true);
     WiFi.scanNetworks(true, false, true, 75U);
     webserver_setup();
-    initCamera();
 
     while (1) {
         wifi_scan_refresh();

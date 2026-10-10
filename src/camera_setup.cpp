@@ -25,7 +25,7 @@ void initCamera(void){
      config.pin_sccb_scl = SIOC_GPIO_NUM;
      config.pin_pwdn = PWDN_GPIO_NUM;
      config.pin_reset = RESET_GPIO_NUM;
-     config.xclk_freq_hz = 40000000;
+     config.xclk_freq_hz = 20000000;
      config.pixel_format = PIXFORMAT_JPEG;
      //config.grab_mode = CAMERA_GRAB_LATEST;
      config.grab_mode = CAMERA_GRAB_WHEN_EMPTY;
@@ -36,7 +36,7 @@ void initCamera(void){
        config.frame_size = (framesize_t)(FRAMESIZE_240X240 + (camres > 0 ? (camres < 9 ? camres : 2) : 2));
        config.jpeg_quality = (camquality >= 0 ? (camquality <= 63 ? camquality : 15) : 15);
        config.fb_count = 2;
-       //config.fb_location = CAMERA_FB_IN_PSRAM;
+       config.fb_location = CAMERA_FB_IN_PSRAM;
      } else {
        //without PSRam we likely wouldn't have that much RAM to handle higher resolutions
        config.frame_size = FRAMESIZE_QVGA ;
